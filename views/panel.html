@@ -8,10 +8,10 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="/app.css">
 <style>
-  .wrap { max-width: 980px; }
-  .cols { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
-  @media (max-width: 820px) { .cols { grid-template-columns: 1fr; } }
-  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  /* Vista de celular en cualquier pantalla: una sola columna centrada (ancho de .wrap en app.css) */
+  .cols { display: grid; gap: 20px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+  @media (max-width: 400px) { .grid2 { grid-template-columns: 1fr; } }
   .biz { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
   .sw { width: 28px; height: 28px; border-radius: 8px; flex: none; }
   .links a { color: var(--ink); font-size: 13px; }
@@ -32,7 +32,7 @@ let preview = { name: 'Nuevo negocio', color: '#c4382c', text_color: '#ffffff', 
 
 function loginView(msg) {
   $('#app').innerHTML = `<h1>Panel Practik</h1>
-    <form id="f" class="panel" style="max-width:420px"><label for="k">Clave de administrador<input id="k" type="password" autocomplete="current-password"></label>
+    <form id="f" class="panel"><label for="k">Clave de administrador<input id="k" type="password" autocomplete="current-password"></label>
     ${msg ? `<p class="err">${esc(msg)}</p>` : ''}<button class="btn">Entrar</button></form>`;
   $('#f').onsubmit = (e) => { e.preventDefault(); KEY = $('#k').value; try { sessionStorage.setItem('pk_admin', KEY); } catch {} load(); };
 }
