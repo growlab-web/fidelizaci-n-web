@@ -22,6 +22,7 @@ const pasos = [
 </head>
 <body>
 <main class="wrap">
+  <p id="demo-bar" class="demo-bar" hidden>Demostración: son datos de ejemplo, nada se guarda. <a href="/admin">Ir al ingreso real</a></p>
   <div id="v-loading" class="stack">
     <p class="muted" id="loading-text">Cargando…</p>
     <button class="btn ghost" id="retry" hidden>Volver a intentar</button>
@@ -151,6 +152,8 @@ const pasos = [
 
 <style is:global>
   [hidden] { display: none !important; }
+  .demo-bar { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--ink); border: 1px solid var(--warn); border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 600; }
+  .demo-bar a { color: inherit; }
   h3 { font-size: 16px; font-weight: 800; }
   .grow { flex: 1; min-width: 140px; }
   .btn.big { min-height: 64px; font-size: 19px; padding: 18px; }

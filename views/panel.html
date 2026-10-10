@@ -27,7 +27,18 @@
 <script src="/app.js"></script>
 <script>
 let KEY = ''; try { KEY = sessionStorage.getItem('pk_admin') || ''; } catch {}
-const P = (url, opts = {}) => api(url, { ...opts, headers: { 'x-admin-key': KEY } });
+// /panel?demo muestra el panel con un negocio de ejemplo, sin clave: nada se guarda
+const DEMO = new URLSearchParams(location.search).has('demo');
+const demoList = [{ slug: 'cafe-misti', username: 'cafe-misti', name: 'Café Misti', color: '#c4382c', text_color: '#ffffff', stamps_goal: 8,
+  reward: 'Un café de cualquier tamaño', terms: 'Un sello por compra desde S/ 10.', address: 'Calle Mercaderes 120, Arequipa', whatsapp: '51999999999', customers: 4 }];
+const demoP = async (url, opts = {}) => {
+  if (opts.method !== 'POST') return { businesses: demoList, wallets: { apple: false, google: false }, publicUrl: location.origin };
+  const b = { ...opts.body, username: opts.body.username || opts.body.slug, customers: 0 }; delete b.password; delete b.logo_base64;
+  const i = demoList.findIndex((x) => x.slug === b.slug);
+  if (i >= 0) demoList[i] = { ...demoList[i], ...b, customers: demoList[i].customers }; else demoList.unshift(b);
+  return { ok: true, slug: b.slug, username: b.username, links: { customer: `${location.origin}/c/${b.slug}`, owner: `${location.origin}/admin` } };
+};
+const P = (url, opts = {}) => (DEMO ? demoP(url, opts) : api(url, { ...opts, headers: { 'x-admin-key': KEY } }));
 let preview = { name: 'Nuevo negocio', color: '#c4382c', text_color: '#ffffff', stamps_goal: 10, reward: 'Un producto gratis' };
 
 function loginView(msg) {
@@ -41,6 +52,7 @@ async function load() {
   let d;
   try { d = await P('/api/panel/businesses'); } catch (e) { return loginView(e.status === 401 ? 'Clave incorrecta.' : e.message); }
   $('#app').innerHTML = `
+    ${DEMO ? '<p class="panel small"><strong>Demostración:</strong> es un negocio de ejemplo, nada se guarda. <a href="/panel" style="color:inherit">Ir al ingreso real</a></p>' : ''}
     <div class="row"><h1>Panel Practik</h1><span class="spacer"></span>
       <div class="status"><span class="chip ${d.wallets.apple ? 'on' : 'off'}">Apple Wallet ${d.wallets.apple ? 'activo' : 'sin configurar'}</span>
       <span class="chip ${d.wallets.google ? 'on' : 'off'}">Google Wallet ${d.wallets.google ? 'activo' : 'sin configurar'}</span></div></div>
@@ -108,7 +120,7 @@ async function load() {
     } catch (err) { $('#err').textContent = err.message; $('#err').hidden = false; }
   };
 }
-KEY ? load() : loginView();
+KEY || DEMO ? load() : loginView();
 </script>
 </body>
 </html>

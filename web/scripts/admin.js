@@ -19,8 +19,13 @@ function show(view) {
   window.scrollTo(0, 0);
 }
 
+// /admin?demo muestra la pantalla con datos de ejemplo, sin ingresar (ver demo.js)
+const DEMO = new URLSearchParams(location.search).has('demo');
+$('#demo-bar').hidden = !DEMO;
+
 // Llamada al servidor: si la sesión venció vuelve al ingreso; sin internet lo dice claro
 async function call(path, opts) {
+  if (DEMO) return (await import('./demo.js')).demoCall(path, opts);
   try { return await api(A(path), opts); } catch (e) {
     if (!e.status) e.message = 'No hay conexión a internet. Revisa el wifi o los datos y vuelve a intentar.';
     if (e.status === 401 && path !== '/login') showLogin();
