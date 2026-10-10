@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#23262b">
+<title>Tu tarjeta de fidelidad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main class="wrap" id="app"><p class="muted">Cargando…</p></main>
+<script src="/app.js"></script>
+<script>
+const slug = location.pathname.split('/').filter(Boolean)[1];
+let B;
+
+async function start() {
+  try { B = await api(`/api/b/${slug}`); } catch (e) { $('#app').innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  applyBrand(B);
+  document.title = `Tarjeta ${B.name}`;
+  // Si ya se registró en este celular, mostramos su tarjeta directamente
+  let saved = null; try { saved = localStorage.getItem(`pk_card_${slug}`); } catch {}
+  if (saved) return location.replace(`/t/${saved}`);
+  renderForm();
+}
+
+function renderForm() {
+  $('#app').innerHTML = `
+    <div class="brandbar"><img src="${B.logo}" alt=""><strong>${esc(B.name)}</strong></div>
+    <h1>Junta ${B.stamps_goal} sellos y llévate ${esc(B.reward.toLowerCase())}</h1>
+    <p class="muted">Tu tarjeta se guarda en el Wallet de tu celular. Muéstrala en caja en cada compra para sumar un sello.</p>
+    ${cardHTML(B, null)}
+    <form id="f" novalidate>
+      <label for="name">Tu nombre<input id="name" autocomplete="given-name" placeholder="Ej. Lucía" required></label>
+      <label for="phone">Celular<input id="phone" inputmode="tel" autocomplete="tel" placeholder="9XX XXX XXX" required></label>
+      <p class="err" id="err" hidden></p>
+      <button class="btn brand block" id="go">Obtener mi tarjeta</button>
+      <p class="muted small">Usamos tu celular solo para identificar tu tarjeta. ${esc(B.terms)}</p>
+    </form>`;
+  $('#f').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const btn = $('#go'); btn.disabled = true; $('#err').hidden = true;
+    try {
+      const r = await api(`/api/b/${slug}/join`, { method: 'POST', body: { name: $('#name').value, phone: $('#phone').value } });
+      try { localStorage.setItem(`pk_card_${slug}`, r.code); } catch {}
+      renderDone(r);
+    } catch (e) { $('#err').textContent = e.message; $('#err').hidden = false; btn.disabled = false; }
+  });
+}
+
+function renderDone(r) {
+  const buttons = walletButtons(B, r.code);
+  $('#app').innerHTML = `
+    <div class="brandbar"><img src="${B.logo}" alt=""><strong>${esc(B.name)}</strong></div>
+    <h1>${r.existing ? 'Ya tenías una tarjeta' : '¡Listo! Tu tarjeta está creada'}</h1>
+    <p class="muted">${buttons ? 'Guárdala en tu celular para tenerla siempre a la mano. Los sellos se actualizan solos.' : 'Guarda este enlace o agrégalo a tu pantalla de inicio.'}</p>
+    <div class="stack">${buttons}<a class="btn ghost block" href="/t/${r.code}">Ver mi tarjeta</a></div>`;
+}
+start();
+</script>
+</body>
+</html>

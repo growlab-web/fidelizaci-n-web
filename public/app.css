@@ -1,0 +1,66 @@
+/* Practik Fidelidad — estilos compartidos.
+   --brand y --brand-ink los define cada negocio desde JS. */
+:root {
+  --bg: #f6f4ef; --surface: #ffffff; --ink: #23262b; --muted: #6b6e72; --line: #e3e0d8;
+  --ok: #1f8a4c; --warn: #b4690e; --danger: #c4382c;
+  --brand: #23262b; --brand-ink: #ffffff;
+  --display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --body: "Figtree", ui-sans-serif, system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #17181a; --surface: #212327; --ink: #ecebe7; --muted: #a2a4a7; --line: #33363b;
+    --ok: #3cc47a; --warn: #e3a04a; --danger: #ef6a5c; color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.5 var(--body); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 480px; margin: 0 auto; padding: 20px 16px 48px; display: grid; gap: 18px; }
+h1, h2, h3 { font-family: var(--display); letter-spacing: -0.02em; line-height: 1.1; margin: 0; text-wrap: balance; }
+h1 { font-size: 30px; font-weight: 800; }
+h2 { font-size: 20px; font-weight: 800; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.brandbar { display: flex; align-items: center; gap: 12px; }
+.brandbar img { width: 44px; height: 44px; border-radius: 12px; object-fit: contain; background: var(--surface); }
+.brandbar strong { font-family: var(--display); font-size: 18px; }
+
+/* Tarjeta visual */
+.lcard { background: var(--brand); color: var(--brand-ink); border-radius: 20px; padding: 18px; display: grid; gap: 14px;
+  box-shadow: 0 10px 30px -12px rgba(0,0,0,.35); }
+.lcard .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.lcard .lbl { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+.lcard .big { font-family: var(--display); font-weight: 800; font-size: 28px; line-height: 1; font-variant-numeric: tabular-nums; }
+.dots { display: grid; grid-template-columns: repeat(var(--cols, 5), 1fr); gap: 10px; }
+.dot { aspect-ratio: 1; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--brand-ink) 55%, transparent);
+  background: color-mix(in srgb, var(--brand-ink) 14%, transparent); display: grid; place-items: center; font-size: 10px; font-weight: 700; }
+.dot.on { background: var(--brand-ink); border-color: var(--brand-ink); }
+.dot.on svg { width: 55%; height: 55%; stroke: var(--brand); }
+.dot.gift { border-style: dashed; }
+.dot.pop { animation: pop .5s ease; }
+@keyframes pop { 0% { transform: scale(.4); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+/* Formularios y botones */
+form, .stack { display: grid; gap: 12px; }
+label { display: grid; gap: 6px; font-size: 14px; font-weight: 600; }
+input, select, textarea { width: 100%; font: 16px var(--body); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+input:focus-visible, button:focus-visible, a:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 14px; padding: 14px 18px;
+  font: 700 16px var(--body); cursor: pointer; text-decoration: none; background: var(--ink); color: var(--bg); }
+.btn.brand { background: var(--brand); color: var(--brand-ink); }
+.btn.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+.btn.ok { background: var(--ok); color: #fff; }
+.btn.danger { background: transparent; color: var(--danger); border: 1px solid var(--line); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.block { width: 100%; }
+.wallet-btn { display: flex; align-items: center; justify-content: center; gap: 10px; background: #000; color: #fff; border-radius: 12px;
+  padding: 13px 16px; font: 600 16px var(--body); text-decoration: none; border: 1px solid #333; }
+.wallet-btn svg { width: 22px; height: 22px; }
+.err { color: var(--danger); font-size: 14px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: grid; gap: 12px; }
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); max-width: 448px; margin: 0 auto;
+  background: var(--ink); color: var(--bg); padding: 14px 16px; border-radius: 14px; font-weight: 600; z-index: 50; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.spacer { flex: 1; }
+@media (prefers-reduced-motion: reduce) { .dot.pop { animation: none; } }

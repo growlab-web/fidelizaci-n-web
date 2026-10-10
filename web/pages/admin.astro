@@ -1,0 +1,193 @@
+---
+// Pantalla del dueño: ingresar, escanear la tarjeta del cliente y dar el sello.
+// Está pensada para que la use sin explicación quien reemplace al dueño.
+const pasos = [
+  'Pide al cliente que abra su tarjeta en el celular.',
+  'Toca "Escanear tarjeta del cliente" y apunta la cámara al código QR.',
+  'Toca "Dar 1 sello". Listo.',
+];
+---
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#23262b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="robots" content="noindex">
+<title>Sellar tarjetas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<main class="wrap">
+  <div id="v-loading" class="stack">
+    <p class="muted" id="loading-text">Cargando…</p>
+    <button class="btn ghost" id="retry" hidden>Volver a intentar</button>
+  </div>
+
+  <!-- 1. Ingreso -->
+  <section id="v-login" class="stack" hidden>
+    <h1>Sellar tarjetas</h1>
+    <p class="muted">Ingresa con el usuario y la contraseña del negocio.</p>
+    <form id="login-form" class="panel" novalidate>
+      <label for="username">Usuario
+        <input id="username" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+      </label>
+      <label for="password">Contraseña
+        <span class="pass">
+          <input id="password" name="password" type="password" autocomplete="current-password">
+          <button type="button" id="toggle-pass" aria-pressed="false">Mostrar</button>
+        </span>
+      </label>
+      <p class="err" id="login-err" role="alert" hidden></p>
+      <button class="btn block big" id="login-btn">Entrar</button>
+    </form>
+    <p class="muted small">¿No tienes el usuario o la contraseña? Pídeselos al dueño del negocio.</p>
+  </section>
+
+  <!-- 2. Inicio: escanear o buscar -->
+  <section id="v-home" class="stack" hidden>
+    <div class="brandbar">
+      <img id="brand-logo" alt="">
+      <strong id="brand-name"></strong>
+      <span class="spacer"></span>
+      <button class="btn ghost mini" id="logout">Salir</button>
+    </div>
+
+    <button class="btn brand block big" id="scan-btn">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M4 12h16"/></svg>
+      Escanear tarjeta del cliente
+    </button>
+    <div id="scan-area" class="stack" hidden>
+      <p><strong>Apunta la cámara al código QR de la tarjeta del cliente.</strong></p>
+      <div id="reader"></div>
+      <button class="btn ghost block" id="scan-cancel">Cancelar</button>
+    </div>
+
+    <label for="q">¿No puedes escanear? Busca al cliente por su celular o su nombre
+      <input id="q" type="search" inputmode="search" autocomplete="off" placeholder="987654321">
+    </label>
+    <div id="results" class="list"></div>
+
+    <section class="panel" id="help">
+      <h2>Cómo dar un sello</h2>
+      <ol class="steps">
+        {pasos.map((p) => <li>{p}</li>)}
+      </ol>
+    </section>
+
+    <details class="panel">
+      <summary>Resumen del negocio</summary>
+      <div class="stats">
+        <div class="stat"><b id="s-customers">0</b><span>Clientes con tarjeta</span></div>
+        <div class="stat"><b id="s-today">0</b><span>Sellos en 24 h</span></div>
+        <div class="stat"><b id="s-ready">0</b><span>Listos para canjear</span></div>
+        <div class="stat"><b id="s-rewards">0</b><span>Premios entregados</span></div>
+      </div>
+      <h3>Actividad reciente</h3>
+      <div id="recent" class="list"></div>
+    </details>
+
+    <details class="panel">
+      <summary>Cartel con QR para el mostrador</summary>
+      <p class="muted small">Los clientes nuevos escanean este QR con su cámara para obtener su tarjeta.</p>
+      <div class="row">
+        <img id="poster-qr" class="poster" alt="QR para obtener la tarjeta">
+        <div class="stack grow">
+          <span class="linkbox" id="join-url"></span>
+          <button class="btn ghost" id="copy">Copiar enlace</button>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- 3. Tarjeta del cliente: dar el sello -->
+  <section id="v-card" class="stack" hidden>
+    <button class="btn ghost mini back" id="back">← Volver al inicio</button>
+
+    <div id="done" class="done" role="status" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+      <div><strong id="done-title"></strong><span id="done-text"></span></div>
+    </div>
+
+    <div id="card-visual"></div>
+    <div class="row muted small"><span id="card-phone"></span><span class="spacer"></span><span id="card-rewards"></span></div>
+
+    <div id="confirm" class="panel confirm" hidden>
+      <p id="confirm-text"></p>
+      <div class="row">
+        <button class="btn ok grow" id="confirm-yes"></button>
+        <button class="btn ghost" id="confirm-no">No</button>
+      </div>
+    </div>
+
+    <button class="btn brand block big" id="redeem" hidden></button>
+    <button class="btn ok block big" id="stamp">Dar 1 sello</button>
+    <button class="btn ghost block big" id="next">Escanear al siguiente cliente</button>
+
+    <details class="panel" id="more">
+      <summary>Más opciones</summary>
+      <div class="row">
+        <span class="grow">¿Le tocan varios sellos? Elige cuántos</span>
+        <div class="stepper">
+          <button id="minus" aria-label="Menos sellos">−</button><span id="n">2</span><button id="plus" aria-label="Más sellos">+</button>
+        </div>
+      </div>
+      <button class="btn ok block" id="stamp-more">Dar 2 sellos</button>
+      <button class="btn danger block" id="undo">Me equivoqué: quitar 1 sello</button>
+      <h3>Historial de esta tarjeta</h3>
+      <div id="history" class="list"></div>
+    </details>
+  </section>
+</main>
+
+<!-- Utilidades compartidas con las páginas del cliente (api, esc, toast, cardHTML, applyBrand) -->
+<script is:inline src="/app.js"></script>
+<script>
+  import '../scripts/admin.js';
+</script>
+
+<style is:global>
+  [hidden] { display: none !important; }
+  h3 { font-size: 16px; font-weight: 800; }
+  .grow { flex: 1; min-width: 140px; }
+  .btn.big { min-height: 64px; font-size: 19px; padding: 18px; }
+  .btn.mini { padding: 8px 12px; font-size: 14px; }
+  .btn.back { justify-self: start; }
+  .pass { display: flex; gap: 8px; }
+  .pass button { flex: none; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); font: 600 14px var(--body); padding: 0 14px; cursor: pointer; }
+  #reader { border-radius: 16px; overflow: hidden; background: #000; min-height: 240px; }
+  #reader video { width: 100% !important; height: auto !important; display: block; }
+  .steps { margin: 0; padding: 0; list-style: none; counter-reset: paso; display: grid; gap: 12px; }
+  .steps li { counter-increment: paso; display: flex; gap: 12px; align-items: flex-start; }
+  .steps li::before { content: counter(paso); flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); font-weight: 700; display: grid; place-items: center; font-size: 15px; }
+  summary { font-weight: 700; cursor: pointer; padding: 4px 0; }
+  details.panel { display: block; }
+  details.panel > * + * { margin-top: 12px; }
+  .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+  .stat b { display: block; font-family: var(--display); font-size: 26px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .stat span { font-size: 13px; color: var(--muted); }
+  .list { display: grid; }
+  .item { display: flex; gap: 10px; align-items: center; padding: 14px 0; border: 0; border-bottom: 1px solid var(--line); font: 15px var(--body); background: none; color: var(--ink); text-align: left; width: 100%; }
+  button.item { cursor: pointer; }
+  .item:last-child { border-bottom: 0; }
+  .item .name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .pill { font-size: 12px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--line); color: var(--ink); white-space: nowrap; }
+  .pill.stamp { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+  .pill.redeem { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
+  .done { display: flex; gap: 14px; align-items: center; background: var(--ok); color: #fff; border-radius: 16px; padding: 16px; }
+  .done.warn { background: var(--warn); }
+  .done svg { flex: none; width: 40px; height: 40px; }
+  .done strong { display: block; font-family: var(--display); font-size: 22px; line-height: 1.15; }
+  .confirm { border-color: var(--warn); }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .stepper button { width: 48px; height: 48px; border: 0; background: none; color: var(--ink); font-size: 22px; cursor: pointer; }
+  .stepper span { min-width: 30px; text-align: center; font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .poster { width: 160px; height: 160px; background: #fff; border-radius: 12px; padding: 8px; }
+  .linkbox { font-size: 13px; word-break: break-all; color: var(--muted); }
+</style>
+</body>
+</html>

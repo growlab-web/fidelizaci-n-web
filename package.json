@@ -1,0 +1,35 @@
+{
+  "name": "practik-fidelidad",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "dev:web": "astro dev",
+    "build": "astro build",
+    "seed": "node src/seed.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@vercel/functions": "^3.9.11",
+    "astro": "^7.3.8",
+    "cookie": "^2.0.1",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.3.0",
+    "google-auth-library": "^11.2.0",
+    "html5-qrcode": "^2.3.8",
+    "jsonwebtoken": "^9.0.3",
+    "passkit-generator": "^3.6.1",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.35.5"
+  },
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  }
+}

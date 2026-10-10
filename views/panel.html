@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panel Practik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  .wrap { max-width: 980px; }
+  .cols { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+  @media (max-width: 820px) { .cols { grid-template-columns: 1fr; } }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .biz { display: flex; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .sw { width: 28px; height: 28px; border-radius: 8px; flex: none; }
+  .links a { color: var(--ink); font-size: 13px; }
+  input[type=color] { padding: 4px; height: 46px; }
+  .status { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); }
+  .chip.on { color: var(--ok); border-color: currentColor; }
+  .chip.off { color: var(--warn); border-color: currentColor; }
+</style>
+</head>
+<body>
+<main class="wrap" id="app"></main>
+<script src="/app.js"></script>
+<script>
+let KEY = ''; try { KEY = sessionStorage.getItem('pk_admin') || ''; } catch {}
+const P = (url, opts = {}) => api(url, { ...opts, headers: { 'x-admin-key': KEY } });
+let preview = { name: 'Nuevo negocio', color: '#c4382c', text_color: '#ffffff', stamps_goal: 10, reward: 'Un producto gratis' };
+
+function loginView(msg) {
+  $('#app').innerHTML = `<h1>Panel Practik</h1>
+    <form id="f" class="panel" style="max-width:420px"><label for="k">Clave de administrador<input id="k" type="password" autocomplete="current-password"></label>
+    ${msg ? `<p class="err">${esc(msg)}</p>` : ''}<button class="btn">Entrar</button></form>`;
+  $('#f').onsubmit = (e) => { e.preventDefault(); KEY = $('#k').value; try { sessionStorage.setItem('pk_admin', KEY); } catch {} load(); };
+}
+
+async function load() {
+  let d;
+  try { d = await P('/api/panel/businesses'); } catch (e) { return loginView(e.status === 401 ? 'Clave incorrecta.' : e.message); }
+  $('#app').innerHTML = `
+    <div class="row"><h1>Panel Practik</h1><span class="spacer"></span>
+      <div class="status"><span class="chip ${d.wallets.apple ? 'on' : 'off'}">Apple Wallet ${d.wallets.apple ? 'activo' : 'sin configurar'}</span>
+      <span class="chip ${d.wallets.google ? 'on' : 'off'}">Google Wallet ${d.wallets.google ? 'activo' : 'sin configurar'}</span></div></div>
+    <div class="cols">
+      <form id="f" class="panel" novalidate>
+        <h2 id="ftitle">Nuevo negocio</h2>
+        <div class="grid2">
+          <label for="name">Nombre del negocio<input id="name" placeholder="Café Misti"></label>
+          <label for="slug">Enlace (solo letras y guiones)<input id="slug" placeholder="cafe-misti"></label>
+        </div>
+        <div class="grid2">
+          <label for="color">Color de la tarjeta<input id="color" type="color" value="#c4382c"></label>
+          <label for="text_color">Color del texto<input id="text_color" type="color" value="#ffffff"></label>
+        </div>
+        <div class="grid2">
+          <label for="username">Usuario del dueño<input id="username" autocapitalize="none" autocomplete="off" spellcheck="false" maxlength="30" placeholder="cafe-misti"></label>
+          <label for="password">Contraseña del dueño<input id="password" autocomplete="off" maxlength="64" placeholder="Déjala vacía para no cambiarla"></label>
+        </div>
+        <label for="stamps_goal">Sellos para el premio<input id="stamps_goal" type="number" min="3" max="12" value="10"></label>
+        <label for="reward">Premio<input id="reward" placeholder="Un café de cualquier tamaño"></label>
+        <label for="terms">Condiciones<textarea id="terms" rows="2" placeholder="Un sello por compra desde S/ 10."></textarea></label>
+        <div class="grid2">
+          <label for="address">Dirección<input id="address"></label>
+          <label for="whatsapp">WhatsApp<input id="whatsapp" inputmode="tel" placeholder="51999999999"></label>
+        </div>
+        <label for="logo">Logo (PNG o JPG, cuadrado de preferencia)<input id="logo" type="file" accept="image/png,image/jpeg,image/webp"></label>
+        <p class="err" id="err" hidden></p>
+        <div class="row"><button class="btn" id="save">Guardar negocio</button><button type="button" class="btn ghost" id="reset">Nuevo</button></div>
+        <div id="done"></div>
+      </form>
+      <div class="stack">
+        <div id="prev"></div>
+        <section class="panel"><h2>Negocios (${d.businesses.length})</h2>
+          ${d.businesses.map((b) => `<div class="biz"><span class="sw" style="background:${b.color}"></span>
+            <div style="flex:1;min-width:0"><strong>${esc(b.name)}</strong><div class="muted small">${b.customers} clientes · ${b.stamps_goal} sellos · usuario ${esc(b.username)}</div>
+            <div class="row links"><a href="/c/${b.slug}" target="_blank">Registro</a><a href="/admin" target="_blank">Dueño</a>
+            <a href="#" data-edit='${esc(JSON.stringify(b))}'>Editar</a></div></div></div>`).join('') || '<p class="muted small">Aún no hay negocios.</p>'}
+        </section>
+      </div>
+    </div>`;
+  const ids = ['name', 'slug', 'color', 'text_color', 'stamps_goal', 'reward', 'terms', 'address', 'whatsapp'];
+  const upd = () => { ids.forEach((k) => (preview[k] = $('#' + k).value || preview[k])); preview.stamps_goal = Math.max(3, Math.min(12, +$('#stamps_goal').value || 10));
+    applyBrand(preview); $('#prev').innerHTML = cardHTML(preview, { name: 'Cliente de ejemplo', stamps: 3 }); };
+  ids.forEach((k) => $('#' + k).addEventListener('input', upd));
+  $('#username').addEventListener('input', () => { $('#username').dataset.touched = '1'; });
+  $('#name').addEventListener('input', () => { if (!$('#slug').dataset.locked) $('#slug').value = $('#name').value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (!$('#slug').dataset.locked && !$('#username').dataset.touched) $('#username').value = $('#slug').value; });
+  $('#reset').onclick = () => { preview = { name: 'Nuevo negocio', color: '#c4382c', text_color: '#ffffff', stamps_goal: 10, reward: 'Un producto gratis' }; load(); };
+  document.querySelectorAll('[data-edit]').forEach((a) => (a.onclick = (e) => {
+    e.preventDefault(); const b = JSON.parse(a.dataset.edit);
+    $('#ftitle').textContent = `Editar ${b.name}`;
+    ['name', 'slug', 'username', 'color', 'text_color', 'stamps_goal', 'reward', 'terms', 'address', 'whatsapp'].forEach((k) => ($('#' + k).value = b[k]));
+    $('#slug').readOnly = true; $('#slug').dataset.locked = '1'; upd(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  }));
+  upd();
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault(); $('#err').hidden = true;
+    const body = {}; ids.forEach((k) => (body[k] = $('#' + k).value)); body.username = $('#username').value; body.password = $('#password').value;
+    const file = $('#logo').files[0];
+    if (file) body.logo_base64 = await new Promise((r) => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(file); });
+    try {
+      const r = await P('/api/panel/businesses', { method: 'POST', body });
+      await load();
+      $('#done').innerHTML = `<div class="panel small"><strong>Guardado.</strong><div>Link para clientes: <code>${esc(r.links.customer)}</code></div><div>Link del dueño: <code>${esc(r.links.owner)}</code> · usuario <code>${esc(r.username)}</code></div></div>`;
+    } catch (err) { $('#err').textContent = err.message; $('#err').hidden = false; }
+  };
+}
+KEY ? load() : loginView();
+</script>
+</body>
+</html>

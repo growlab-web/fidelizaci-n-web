@@ -1,0 +1,11 @@
+node_modules/
+data/
+dist/
+.astro/
+.vercel/
+.env
+*.pem
+*.key
+*.cer
+*.p12
+*.json.key

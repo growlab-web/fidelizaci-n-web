@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#23262b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Mi tarjeta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Figtree:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/app.css">
+<style>
+  .qr { background: #fff; border-radius: 16px; padding: 16px; display: grid; justify-items: center; gap: 6px; }
+  .qr img { width: 220px; height: 220px; }
+  .qr code { font: 600 18px ui-monospace, Menlo, monospace; letter-spacing: .15em; color: #111; }
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><p class="muted">Cargando…</p></main>
+<script src="/app.js"></script>
+<script>
+const code = location.pathname.split('/').filter(Boolean)[1].toUpperCase();
+let last = null;
+
+async function load() {
+  let d;
+  try { d = await api(`/api/card/${code}`); } catch (e) { $('#app').innerHTML = `<p class="err">${esc(e.message)}</p>`; return; }
+  const { business: b, card: c } = d;
+  if (last && last.stamps === c.stamps) return; // nada cambió
+  const pop = last && c.stamps > last.stamps ? c.stamps - 1 : -1;
+  if (last && c.stamps > last.stamps) toast('¡Sumaste un sello!');
+  last = c;
+  applyBrand(b);
+  document.title = `Mi tarjeta · ${b.name}`;
+  const buttons = walletButtons(b, code);
+  $('#app').innerHTML = `
+    <div class="brandbar"><img src="${b.logo}" alt=""><strong>${esc(b.name)}</strong></div>
+    ${cardHTML(b, c, pop)}
+    <div class="qr"><img src="/qr.svg?d=${code}" alt="Código QR de tu tarjeta"><code>${code}</code></div>
+    <p class="muted small" style="text-align:center">Muestra este código en caja para sumar tu sello.</p>
+    ${buttons ? `<div class="stack">${buttons}</div>` : ''}
+    <div class="panel small">
+      <div class="row"><span class="muted">Premios canjeados</span><span class="spacer"></span><strong>${c.rewards_redeemed}</strong></div>
+      ${b.address ? `<div class="row"><span class="muted">Dirección</span><span class="spacer"></span><span>${esc(b.address)}</span></div>` : ''}
+      ${b.terms ? `<p class="muted">${esc(b.terms)}</p>` : ''}
+    </div>`;
+}
+load();
+setInterval(() => document.visibilityState === 'visible' && load(), 15000);
+document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && load());
+</script>
+</body>
+</html>
