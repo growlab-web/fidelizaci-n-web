@@ -3,7 +3,7 @@
 /* global $, esc, api, applyBrand, cardHTML, toast */
 
 const A = (p) => `/api/admin${p}`;
-const VIEWS = ['v-loading', 'v-login', 'v-home', 'v-card'];
+const VIEWS = ['v-loading', 'v-login', 'v-home', 'v-give', 'v-card'];
 const TYPE = { stamp: 'Sello', redeem: 'Premio', join: 'Nuevo', undo: 'Quitado' };
 const when = (d) => new Date(d).toLocaleString('es-PE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
@@ -104,6 +104,17 @@ async function goHome() {
 }
 
 $('#recent').onclick = (ev) => { const el = ev.target.closest('[data-code]'); if (el) openCard(el.dataset.code); };
+
+// ---------- dar tarjeta a un cliente nuevo ----------
+$('#give-btn').onclick = async () => { await closeScanner(); show('v-give'); };
+$('#give-back').onclick = goHome;
+$('#wa-send').onclick = () => {
+  let phone = $('#wa-phone').value.replace(/\D/g, '');
+  if (phone && phone.length < 9) { toast('Escribe el celular completo, de 9 dígitos, o déjalo vacío para elegir el contacto en WhatsApp.', 5000); return; }
+  if (phone.length === 9) phone = `51${phone}`; // celular peruano sin código de país
+  const msg = `Hola, aquí tienes tu tarjeta de sellos de ${B.name}. Ábrela y guárdala en tu celular: ${$('#join-url').textContent}`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+};
 
 $('#copy').onclick = async () => {
   try { await navigator.clipboard.writeText($('#join-url').textContent); toast('Enlace copiado'); } catch {

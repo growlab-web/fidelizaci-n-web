@@ -72,6 +72,11 @@ const pasos = [
     </label>
     <div id="results" class="list"></div>
 
+    <button class="btn ghost block big" id="give-btn">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M12 10v5M9.5 12.5h5"/></svg>
+      Dar tarjeta a un cliente nuevo
+    </button>
+
     <section class="panel" id="help">
       <h2>Cómo dar un sello</h2>
       <ol class="steps">
@@ -91,17 +96,24 @@ const pasos = [
       <div id="recent" class="list"></div>
     </details>
 
-    <details class="panel">
-      <summary>Cartel con QR para el mostrador</summary>
-      <p class="muted small">Los clientes nuevos escanean este QR con su cámara para obtener su tarjeta.</p>
-      <div class="row">
-        <img id="poster-qr" class="poster" alt="QR para obtener la tarjeta">
-        <div class="stack grow">
-          <span class="linkbox" id="join-url"></span>
-          <button class="btn ghost" id="copy">Copiar enlace</button>
-        </div>
-      </div>
-    </details>
+  </section>
+
+  <!-- Dar la tarjeta a un cliente nuevo -->
+  <section id="v-give" class="stack" hidden>
+    <button class="btn ghost mini back" id="give-back">← Volver al inicio</button>
+    <h1>Dar tarjeta a un cliente nuevo</h1>
+    <p>Pide al cliente que escanee este código con la cámara de su celular. Pondrá su nombre y su número, y guardará la tarjeta en su billetera.</p>
+    <img id="poster-qr" class="qr-big" alt="QR para obtener la tarjeta">
+    <div class="panel">
+      <h2>¿No puede escanear?</h2>
+      <label for="wa-phone">Envíale el enlace por WhatsApp
+        <input id="wa-phone" type="tel" inputmode="tel" autocomplete="off" placeholder="Celular del cliente (opcional)">
+      </label>
+      <button class="btn ok block" id="wa-send">Enviar por WhatsApp</button>
+      <span class="linkbox" id="join-url"></span>
+      <button class="btn ghost block" id="copy">Copiar enlace</button>
+    </div>
+    <p class="muted small">Este mismo código sirve como cartel: imprímelo y déjalo en el mostrador para que los clientes obtengan su tarjeta solos.</p>
   </section>
 
   <!-- 3. Tarjeta del cliente: dar el sello -->
@@ -189,7 +201,7 @@ const pasos = [
   .stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
   .stepper button { width: 48px; height: 48px; border: 0; background: none; color: var(--ink); font-size: 22px; cursor: pointer; }
   .stepper span { min-width: 30px; text-align: center; font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums; }
-  .poster { width: 160px; height: 160px; background: #fff; border-radius: 12px; padding: 8px; }
+  .qr-big { width: min(100%, 320px); aspect-ratio: 1; justify-self: center; background: #fff; border-radius: 20px; padding: 16px; }
   .linkbox { font-size: 13px; word-break: break-all; color: var(--muted); }
 </style>
 </body>
